@@ -45,6 +45,9 @@ public class BaseCardFormActivity extends AppCompatActivity implements OnCardFor
         mCardForm.setOnCardFormSubmitListener(this);
         mCardForm.setOnCardTypeChangedListener(this);
         mCardForm.getCardEditText().setOptional(true);
+        mCardForm.getCardEditText().setMask(false);
+        mCardForm.getCardEditText().setMaxEms(5);
+        mCardForm.getExpirationDateEditText().useDialogForExpirationDateEntry(this,false);
         // Warning: this is for development purposes only and should never be done outside of this example app.
         // Failure to set FLAG_SECURE exposes your app to screenshots allowing other apps to steal card information.
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
