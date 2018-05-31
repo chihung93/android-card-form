@@ -166,7 +166,7 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
             mSavedTranformationMethod = getTransformationMethod();
 
             setTransformationMethod(new CardNumberTransformation());
-        } else {
+        } else if (isValid() && origin.length() >4){
             ignoreFocus = true;
             removeTextChangedListener(this);
             setText(digitDots + origin.subSequence(origin.length() - 4, origin.length()));

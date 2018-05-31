@@ -48,7 +48,7 @@ public class ExpirationDateEditText extends ErrorEditText implements TextWatcher
 
     private void init() {
         setInputType(InputType.TYPE_CLASS_NUMBER);
-        InputFilter[] filters = { new LengthFilter(6) };
+        InputFilter[] filters = { new LengthFilter(4) };
         setFilters(filters);
         addTextChangedListener(this);
         setShowKeyboardOnFocus(!mUseExpirationDateDialog);
@@ -131,7 +131,7 @@ public class ExpirationDateEditText extends ErrorEditText implements TextWatcher
     public String getYear() {
         String string = getString();
         if (string.length() == 4 || string.length() == 6) {
-            return getString().substring(2);
+            return getString().substring(string.length()-2,string.length());
         }
         return "";
     }
