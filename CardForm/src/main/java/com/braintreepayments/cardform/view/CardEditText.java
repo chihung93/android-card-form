@@ -183,10 +183,16 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
 
     private void addSpans(Editable editable, int[] spaceIndices) {
         final int length = editable.length();
-        for (int index : spaceIndices) {
+        for (int i = 0; i < spaceIndices.length; i++) {
+            int index = spaceIndices[i];
             if (index <= length) {
-                editable.setSpan(new SpaceSpan(), index - 1, index,
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                if (i == spaceIndices.length - 1){
+                    editable.setSpan(new SpaceSpanLong(), index - 1, index,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }else {
+                    editable.setSpan(new SpaceSpan(), index - 1, index,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
             }
         }
     }
