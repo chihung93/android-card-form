@@ -3,6 +3,7 @@ package com.braintreepayments.sample;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -32,7 +33,7 @@ public class BaseCardFormActivity extends AppCompatActivity implements OnCardFor
 
         mCardForm = findViewById(R.id.card_form);
         mCardForm.cardRequired(true)
-                .maskCardNumber(true)
+                .maskCardNumber(false)
                 .maskCvv(true)
                 .expirationRequired(true)
                 .cvvRequired(true)
@@ -43,7 +44,7 @@ public class BaseCardFormActivity extends AppCompatActivity implements OnCardFor
                 .setup(this);
         mCardForm.setOnCardFormSubmitListener(this);
         mCardForm.setOnCardTypeChangedListener(this);
-
+        mCardForm.getCardEditText().setOptional(true);
         // Warning: this is for development purposes only and should never be done outside of this example app.
         // Failure to set FLAG_SECURE exposes your app to screenshots allowing other apps to steal card information.
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);

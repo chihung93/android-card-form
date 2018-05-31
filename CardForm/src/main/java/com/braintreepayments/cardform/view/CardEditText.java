@@ -31,7 +31,9 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
     private CardType mCardType;
     private OnCardTypeChangedListener mOnCardTypeChangedListener;
     private TransformationMethod mSavedTranformationMethod;
-
+    private String origin = "";
+    private static final String digitDots = "••••••••••••";
+    private boolean ignoreFocus = false;
     public CardEditText(Context context) {
         super(context);
         init();
@@ -60,7 +62,7 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
      * {@code true}.
      *
      * @param display {@code true} to display card type icons, {@code false} to never display card
-     *                            type icons.
+     *                type icons.
      */
     public void displayCardTypeIcon(boolean display) {
         mDisplayCardIcon = display;
@@ -80,8 +82,8 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
 
     /**
      * @param mask if {@code true}, all but the last four digits of the card number will be masked when
-     * focus leaves the card field. Uses {@link CardNumberTransformation}, transforming the number from
-     * something like "4111111111111111" to "•••• 1111".
+     *             focus leaves the card field. Uses {@link CardNumberTransformation}, transforming the number from
+     *             something like "4111111111111111" to "•••• 1111".
      */
     public void setMask(boolean mask) {
         mMask = mask;
@@ -89,23 +91,26 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
 
     @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
+        if (ignoreFocus){
+            return;
+        }
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
-
         if (focused) {
             unmaskNumber();
 
             if (getText().toString().length() > 0) {
                 setSelection(getText().toString().length());
             }
-        } else if (mMask && isValid()) {
+        } else if (isValid()) {
             maskNumber();
         }
     }
 
     /**
      * Receive a callback when the {@link com.braintreepayments.cardform.utils.CardType} changes
+     *
      * @param listener to be called when the {@link com.braintreepayments.cardform.utils.CardType}
-     *  changes
+     *                 changes
      */
     public void setOnCardTypeChangedListener(OnCardTypeChangedListener listener) {
         mOnCardTypeChangedListener = listener;
@@ -121,21 +126,25 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
         updateCardType();
         setCardIcon(mCardType.getFrontResource());
 
-        addSpans(editable, mCardType.getSpaceIndices());
+        if (!editable.toString().contains(digitDots)){
+            origin = editable.toString();
+        }
 
         if (mCardType.getMaxCardLength() == getSelectionStart()) {
             validate();
-
             if (isValid()) {
+                if (ignoreFocus){
+                    return;
+                }
                 focusNextView();
             } else {
                 unmaskNumber();
             }
         } else if (!hasFocus()) {
-            if (mMask) {
-                maskNumber();
-            }
+            maskNumber();
         }
+
+        addSpans(editable, mCardType.getSpaceIndices());
     }
 
     @Override
@@ -153,16 +162,30 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
     }
 
     private void maskNumber() {
-        if (!(getTransformationMethod() instanceof CardNumberTransformation)) {
+        if (mMask && !(getTransformationMethod() instanceof CardNumberTransformation)) {
             mSavedTranformationMethod = getTransformationMethod();
 
             setTransformationMethod(new CardNumberTransformation());
+        } else {
+            ignoreFocus = true;
+            removeTextChangedListener(this);
+            setText(digitDots + origin.subSequence(origin.length() - 4, origin.length()));
+            addSpans(getEditableText(), mCardType.getSpaceIndices());
+            addTextChangedListener(this);
+            ignoreFocus = false;
         }
     }
 
     private void unmaskNumber() {
         if (getTransformationMethod() != mSavedTranformationMethod) {
             setTransformationMethod(mSavedTranformationMethod);
+        }
+        if (!TextUtils.isEmpty(origin)) {
+
+            removeTextChangedListener(this);
+            setText(origin);
+            addSpans(getEditableText(), mCardType.getSpaceIndices());
+            addTextChangedListener(this);
         }
     }
 
@@ -171,7 +194,7 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
         if (mCardType != type) {
             mCardType = type;
 
-            InputFilter[] filters = { new LengthFilter(mCardType.getMaxCardLength()) };
+            InputFilter[] filters = {new LengthFilter(mCardType.getMaxCardLength())};
             setFilters(filters);
             invalidate();
 
@@ -186,10 +209,10 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
         for (int i = 0; i < spaceIndices.length; i++) {
             int index = spaceIndices[i];
             if (index <= length) {
-                if (i == spaceIndices.length - 1){
+                if (i == spaceIndices.length - 1) {
                     editable.setSpan(new SpaceSpanLong(), index - 1, index,
                             Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }else {
+                } else {
                     editable.setSpan(new SpaceSpan(), index - 1, index,
                             Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
@@ -206,5 +229,6 @@ public class CardEditText extends ErrorEditText implements TextWatcher {
     }
 
     @Override
-    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+    }
 }
